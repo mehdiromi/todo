@@ -1,4 +1,4 @@
-(ns todo)
+(ns todo.core)
 
 (def debug? true)
 (defn debug-log [& vs]
