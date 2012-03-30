@@ -1,4 +1,4 @@
 (ns main
-  (:require [todo :as todo]))
+  (:require [todo.core :as todo.core]))
 
 (todo.core/hello)

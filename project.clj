@@ -2,7 +2,7 @@
   :description "FIXME: write description"
   :plugins [[lein-cljsbuild "0.1.3"]]
   :dependencies [[org.clojure/clojure "1.3.0"]
-                [hiccups "0.1.1"]]
+                [crate "0.1.0-SNAPSHOT"]]
   :cljsbuild {
     :builds [{
         :source-path "src"
