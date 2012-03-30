@@ -1,7 +1,8 @@
 (defproject todo "0.1.0-SNAPSHOT"
   :description "FIXME: write description"
-  :dependencies [[org.clojure/clojure "1.3.0"]]
   :plugins [[lein-cljsbuild "0.1.3"]]
+  :dependencies [[org.clojure/clojure "1.3.0"]
+                [hiccups "0.1.1"]]
   :cljsbuild {
     :builds [{
         :source-path "src"
