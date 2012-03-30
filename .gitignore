@@ -6,3 +6,5 @@ src/pinot*
 src/noir*
 cljs-macros*
 .repl*
+
+/.lein-plugins/checksum
