@@ -6,9 +6,17 @@
   (when debug?
     (.log js/console (apply str vs))))
 
+
+(defn- create-app []
+    {:ENTER_KEY 13
+    }
+  )
+
+
 (defn init [& args]
   (do
-    (js/alert "Hello from ClojureScript!"))
+    (let [app create-app])
+      (js/alert "Hello from ClojureScript!"))
     )
 
 
