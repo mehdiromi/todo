@@ -9,6 +9,7 @@
         :source-path "src"
         :compiler {
           :output-to "js/main.js"
+          ;:externs ["js/jquery.js"]
           ;:optimizations :advanced
           :optimizations :simple
           :pretty-print true}}]})
