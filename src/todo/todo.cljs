@@ -1,4 +1,6 @@
-(ns todo.core)
+(ns todo.core
+  (:require [crate.core :as crate]))
+
 (def $ (js* "$"))
 (def debug? true)
 
@@ -11,13 +13,12 @@
 
 (defn- render [app]
   (do
-    (.append ($ "#wrapper") "<p>1 Hello World!</p>")
-    (.append ($ "#wrapper") "<p>2 Hello World!</p>")
+    (.append ($ "#wrapper") (crate/html [:p {:id "1"} "Hello 1!"]))
+    (.append ($ "#wrapper") (crate/html [:p {:id "2"} "Hello 2!"]))
     ))
 
 (defn- create-app []
-  (let [app
-    {
+  (let [app {
       :todos (store)
     }]
     (render app)))
