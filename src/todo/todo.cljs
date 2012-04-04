@@ -13,8 +13,16 @@
 
 (defn- render [app]
   (do
-    (.append ($ "#wrapper") (crate/html [:p {:id "1"} "Hello 1!"]))
-    (.append ($ "#wrapper") (crate/html [:p {:id "2"} "Hello 2!"]))
+    (.append ($ "#wrapper") (crate/html
+      [:li {:class "todo"}
+        [:div {:class "inner"}
+          [:div {:class "name"}
+            "Tap me"]]]))
+    (.append ($ "#wrapper") (crate/html
+      [:li {:class "todo"}
+        [:div {:class "inner"}
+          [:div {:class "name"}
+            "Tap me"]]]))
     ))
 
 (defn- create-app []
