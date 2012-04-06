@@ -22,18 +22,18 @@
                        (take 12 (drop 18 r))))))
 
 (defn- load-todos []
-  [ {:name "todo 1"
-     :id (uuid)
+  [ {:id (uuid)
+     :name "todo 1"
      :done false}
-    {:name "todo 2"
-     :id (uuid)
+    {:id (uuid)
+     :name "todo 2"
      :done false}
      ])
 
 (defn- render-todo [x]
   (do
     (let [todo {
-      :dragging false
+      :name (x :name)
       :el (.append ($ "#wrapper") (crate/html
             [:li {:class (if (x :done) "todo done" "todo") :id (x :id)}
               [:div {:class "inner"}
@@ -41,11 +41,13 @@
                 ;[:input {:type "text" :value (x :name)} (x :name)]]]
                 ))}]
       (.on ($ (+ "#" (x :id))) "click" (fn [e]
-        (->
-          (.find ($ (+ "#" (x :id))) ".name")
-          (.empty)
-          (.append (crate/html
-            [:input {:type "text" :value (x :name)}]))))))))
+        (when (and (not window.editing) (not window.inAction))
+          (let [t (.find ($ (+ "#" (x :id))) ".name")]
+            (js/alert "xxx")
+            (set! window.editing true)
+            (.empty t)
+            (.append t (crate/html
+              [:input {:type "text" :value (todo :name)}])))))))))
 
 (defn- render-todos [todos]
   (doseq [todo todos]
