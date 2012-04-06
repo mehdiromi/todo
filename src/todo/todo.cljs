@@ -43,7 +43,6 @@
       (.on ($ (+ "#" (x :id))) "click" (fn [e]
         (when (and (not window.editing) (not window.inAction))
           (let [t (.find ($ (+ "#" (x :id))) ".name")]
-            (js/alert "xxx")
             (set! window.editing true)
             (.empty t)
             (.append t (crate/html
