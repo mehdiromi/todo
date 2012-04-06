@@ -45,15 +45,22 @@
           (let [t (.find ($ (+ "#" (x :id))) ".name")]
             (set! window.editing true)
             (.empty t)
-            (.append t (crate/html
-              [:input {:type "text" :value (todo :name)}])))))))))
+            (let [in ($ (crate/html [:input {:type "text" :value (todo :name)}]))]
+              (do
+                (.append t in)
+                (.blur in (fn []
+                  (do
+                    (set! window.editing false)
+                    (.html t (.val in)))
+                )))))))))))
 
 (defn- render-todos [todos]
   (doseq [todo todos]
     (render-todo todo)))
 
 (defn- render [app]
-  (render-todos (app :todos)))
+  (do
+    (render-todos (app :todos))))
 
 (defn- create-app []
   (let [app
