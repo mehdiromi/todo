@@ -35,7 +35,7 @@
     (let [todo {
       :dragging false
       :el (.append ($ "#wrapper") (crate/html
-            [:li {:class (if (x :done) "todo done" "todo") :id (x :id)} 
+            [:li {:class (if (x :done) "todo done" "todo") :id (x :id)}
               [:div {:class "inner"}
                 [:div {:class "name"} (x :name)]]]
                 ;[:input {:type "text" :value (x :name)} (x :name)]]]
