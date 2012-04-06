@@ -1,5 +1,6 @@
 (ns todo.core
   (:require [crate.core :as crate]))
+  ;(:use [jayq.core :only [$ inner]]))
 
 (def $ (js* "$"))
 (def debug? true)
@@ -26,14 +27,25 @@
      :done false}
     {:name "todo 2"
      :id (uuid)
-     :done false}])
+     :done false}
+     ])
 
 (defn- render-todo [x]
-  (.append ($ "#wrapper") (crate/html
-    [:li {:class (if (x :done) "todo done" "todo")}
-      [:div {:class "inner"}
-        [:div {:class "name"}
-          (x :name)]]])))
+  (do
+    (let [todo {
+      :dragging false
+      :el (.append ($ "#wrapper") (crate/html
+            [:li {:class (if (x :done) "todo done" "todo") :id (x :id)} 
+              [:div {:class "inner"}
+                [:div {:class "name"} (x :name)]]]
+                ;[:input {:type "text" :value (x :name)} (x :name)]]]
+                ))}]
+      (.on ($ (+ "#" (x :id))) "click" (fn [e]
+        (->
+          (.find ($ (+ "#" (x :id))) ".name")
+          (.empty)
+          (.append (crate/html
+            [:input {:type "text" :value (x :name)}]))))))))
 
 (defn- render-todos [todos]
   (doseq [todo todos]

@@ -11,7 +11,8 @@
         :source-path "src"
         :compiler {
           :output-to "js/main.js"
-          ;:externs ["js/jquery.js"]
+          ;:externs ["js/jq.mobi.min.js"]
+          ;:externs ["js/jquery.mobile.min.js"]
           ;:optimizations :advanced
           :optimizations :simple
           :pretty-print true}}]})
