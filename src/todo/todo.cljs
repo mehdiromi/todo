@@ -72,7 +72,7 @@
           [:div {:class "name"} (g :name)]
             [:div {:class "count"} (count (g :list))]]]))
       ($ "#todo-home"))
-    (render-todos (g :list))
+    ;(render-todos (g :list))
     ))
 
 (defn- render [todo-data]
