@@ -19,54 +19,73 @@
                        (take 3 (drop 12 r)) ["-"]
                        [(.toString  (bit-or 0x8 (bit-and 0x3 (rand-int 15))) 16)]
                        (take 3 (drop 15 r)) ["-"]
-                       (take 12 (drop 18 r))))))
+                       (take 12 (drop 18 r))
+                       ))))
 
-(defn- load-todos []
-  [ {:id (uuid)
-     :name "todo 1"
-     :done false}
-    {:id (uuid)
-     :name "todo 2"
-     :done false}
-     ])
+(defn- load-todo-data []
+  [{:id (uuid)
+    :name "group 1"
+    :list [{:id (uuid)
+            :name "todo 1"
+            :done false}
+           {:id (uuid)
+            :name "todo 2"
+            :done false}
+          ]}])
 
-(defn- render-todo [x]
+(defn- render-todo [e]
   (do
-    (let [todo {
-      :name (x :name)
-      :el (.append ($ "#wrapper") (crate/html
-            [:li {:class (if (x :done) "todo done" "todo") :id (x :id)}
-              [:div {:class "inner"}
-                [:div {:class "name"} (x :name)]]]
-                ;[:input {:type "text" :value (x :name)} (x :name)]]]
-                ))}]
-      (.on ($ (+ "#" (x :id))) "click" (fn [e]
-        (when (and (not window.editing) (not window.inAction))
-          (let [t (.find ($ (+ "#" (x :id))) ".name")]
-            (set! window.editing true)
-            (.empty t)
-            (let [in ($ (crate/html [:input {:type "text" :value (todo :name)}]))]
-              (do
-                (.append t in)
-                (.blur in (fn []
-                  (do
-                    (set! window.editing false)
-                    (.html t (.val in)))
-                )))))))))))
+    (.appendTo ($ (crate/html
+      [:li {:class (if (e :done) "todo done" "todo") :id (e :id)}
+        [:div {:class "inner"}
+          [:div {:class "name"} (e :name)]]]
+          ;[:input {:type "text" :value (e :name)} (e :name)]]]
+          ))
+      ($ "#listview"))
+    (.on ($ (+ "#" (e :id))) "click" (fn [e]
+      (when (and (not window.editing) (not window.inAction))
+        (let [t (.find ($ (+ "#" (e :id))) ".name")]
+          (set! window.editing true)
+          (.empty t)
+          (let [in ($ (crate/html [:input {:type "text" :value (e :name)}]))]
+            (do
+              (.append t in)
+              (.bind in "blur" (fn []
+                (do
+                  (set! window.editing false)
+                  (.html t (.val in)))
+              ))))))))
+      ))
 
-(defn- render-todos [todos]
-  (doseq [todo todos]
-    (render-todo todo)))
-
-(defn- render [app]
+(defn- render-todos [list]
   (do
-    (render-todos (app :todos))))
+    (.appendTo ($ (crate/html [:ul {:id "listview"}])) ($ "#wrapper"))
+    (doseq [e list]
+      (render-todo e)))
+    )
+
+(defn- render-group [g]
+  (do
+    (.appendTo ($ (crate/html
+      [:li {:class (if (empty? (g :list)) "list empty" "list") :id (g :id)}
+        [:div {:class "inner"}
+          [:div {:class "name"} (g :name)]
+            [:div {:class "count"} (count (g :list))]]]))
+      ($ "#todo-home"))
+    (render-todos (g :list))
+    ))
+
+(defn- render [todo-data]
+  (do
+    (.appendTo ($ (crate/html [:ul {:id "todo-home"}]))
+      ($ "#wrapper"))
+    (doseq [g todo-data]
+      (render-group g))
+    ))
 
 (defn- create-app []
-  (let [app
-    {:todos (load-todos)
-      }]
-    (render app)))
+  (let [todo-data (load-todo-data)]
+    (render todo-data)))
 
 (defn init [& args]
   (.ready ($ js/document) create-app))
