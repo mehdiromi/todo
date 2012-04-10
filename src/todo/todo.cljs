@@ -70,7 +70,7 @@
       [:li {:class (if (empty? (g :list)) "list empty" "list") :id (g :id)}
         [:div {:class "inner"}
           [:div {:class "name"} (g :name)]
-            [:div {:class "count"} (count (g :list))]]]))
+            [:div {:class "count"} (.toString (count (g :list)))]]]))
       ($ "#todo-home"))
     ;(render-todos (g :list))
     ))
