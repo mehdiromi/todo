@@ -42,7 +42,7 @@
           ;[:input {:type "text" :value (e :name)} (e :name)]]]
           ))
       ($ "#listview"))
-    (.on ($ (+ "#" (e :id))) "click" (fn [e]
+    (.on ($ (+ "#" (e :id))) "tap" (fn [e]
       (when (and (not window.editing) (not window.inAction))
         (let [t (.find ($ (+ "#" (e :id))) ".name")]
           (set! window.editing true)
@@ -60,6 +60,8 @@
 (defn- render-todos [list]
   (do
     (.appendTo ($ (crate/html [:ul {:id "listview"}])) ($ "#wrapper"))
+    (.on ($ "#listview") "tap" (fn [e]
+      (.remove ($ "#listview"))))
     (doseq [e list]
       (render-todo e)))
     )
@@ -72,7 +74,7 @@
           [:div {:class "name"} (g :name)]
             [:div {:class "count"} (.toString (count (g :list)))]]]))
       ($ "#todo-home"))
-    (.on ($ (+ "#" (g :id))) "click" (fn [e]
+    (.on ($ (+ "#" (g :id))) "tap" (fn [e]
       (render-todos (g :list))))
     ))
 
