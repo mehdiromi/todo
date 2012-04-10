@@ -72,7 +72,8 @@
           [:div {:class "name"} (g :name)]
             [:div {:class "count"} (.toString (count (g :list)))]]]))
       ($ "#todo-home"))
-    ;(render-todos (g :list))
+    (.on ($ (+ "#" (g :id))) "click" (fn [e]
+      (render-todos (g :list))))
     ))
 
 (defn- render [todo-data]
