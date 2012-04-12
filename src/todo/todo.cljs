@@ -42,7 +42,7 @@
           ;[:input {:type "text" :value (elem :name)} (elem :name)]]]
           ))
       ($ "#listview"))
-    (.on ($ (+ "#" (elem :id))) "tap" (fn [e]
+    (.on ($ (+ "#" (elem :id))) "taphold" (fn [e]
       (when (and (not window.editing) (not window.inAction))
         (let [t (.find ($ (+ "#" (elem :id))) ".name")]
           (set! window.editing true)
