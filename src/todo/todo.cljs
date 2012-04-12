@@ -60,17 +60,20 @@
 (defn- render-todos [list]
   (do
     (.appendTo ($ (crate/html [:ul {:id "listview"}])) ($ "#wrapper"))
-    (.on ($ "#listview") "taphold" (fn [e]
-      (when (and (not window.editing) (not window.inAction))
-        (.remove ($ "#listview")))))
+    (.hide ($ "#home"))
     (.on ($ "#listview") "swipeleft" (fn [e]
+      (when (and (not window.editing) (not window.inAction))
+        (.remove ($ "#listview"))
+        (.show ($ "#home"))
+        )))
+    (.on ($ "#listview") "swiperight" (fn [e]
       (when (and (not window.editing) (not window.inAction))
         (let [tid (uuid)
               in ($ (crate/html [:input {:type "text" :value ""} ""]))
-                newtodo ($ (crate/html
-                  [:li {:class "todo" :id tid}
-                    [:div {:class "inner"}
-                      [:div {:class "name"}]]]))]
+              newtodo ($ (crate/html
+                [:li {:class "todo" :id tid}
+                  [:div {:class "inner"}
+                    [:div {:class "name"}]]]))]
           (set! window.editing true)
           (.bind in "blur" (fn []
             (do
@@ -92,17 +95,37 @@
         [:div {:class "inner"}
           [:div {:class "name"} (g :name)]
             [:div {:class "count"} (.toString (count (g :list)))]]]))
-      ($ "#todo-home"))
+      ($ "#home"))
     (.on ($ (+ "#" (g :id))) "tap" (fn [e]
       (render-todos (g :list))))
     ))
 
 (defn- render [todo-data]
   (do
-    (.appendTo ($ (crate/html [:ul {:id "todo-home"}]))
+    (.appendTo ($ (crate/html [:ul {:id "home"}]))
       ($ "#wrapper"))
     (doseq [g todo-data]
       (render-group g))
+    (.on ($ "#home") "swiperight" (fn [e]
+      (when (and (not window.editing) (not window.inAction))
+        (let [gid (uuid)
+              in ($ (crate/html [:input {:type "text" :value ""} ""]))
+              newg ($ (crate/html
+                [:li {:class "list empty" :id gid}
+                  [:div {:class "inner"}
+                    [:div {:class "name"}]]]))]
+          (set! window.editing true)
+          (.bind in "blur" (fn []
+            (do
+              (set! window.editing false)
+              (.remove newg)
+              (if-not (= "" (.val in))
+                (render-group {:id gid :name (.val in) :list []})))))
+          (.appendTo newg ($ "#home"))
+          (.appendTo in (.find newg ".name"))
+          (.focus in)
+          )
+      )))
     ))
 
 (defn- create-app []
