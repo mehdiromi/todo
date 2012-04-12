@@ -33,21 +33,21 @@
             :done false}
           ]}])
 
-(defn- render-todo [e]
+(defn- render-todo [elem]
   (do
     (.appendTo ($ (crate/html
-      [:li {:class (if (e :done) "todo done" "todo") :id (e :id)}
+      [:li {:class (if (elem :done) "todo done" "todo") :id (elem :id)}
         [:div {:class "inner"}
-          [:div {:class "name"} (e :name)]]]
-          ;[:input {:type "text" :value (e :name)} (e :name)]]]
+          [:div {:class "name"} (elem :name)]]]
+          ;[:input {:type "text" :value (elem :name)} (elem :name)]]]
           ))
       ($ "#listview"))
-    (.on ($ (+ "#" (e :id))) "tap" (fn [e]
+    (.on ($ (+ "#" (elem :id))) "tap" (fn [e]
       (when (and (not window.editing) (not window.inAction))
-        (let [t (.find ($ (+ "#" (e :id))) ".name")]
+        (let [t (.find ($ (+ "#" (elem :id))) ".name")]
           (set! window.editing true)
           (.empty t)
-          (let [in ($ (crate/html [:input {:type "text" :value (e :name)}]))]
+          (let [in ($ (crate/html [:input {:type "text" :value (elem :name)}]))]
             (do
               (.append t in)
               (.bind in "blur" (fn []
@@ -61,9 +61,10 @@
   (do
     (.appendTo ($ (crate/html [:ul {:id "listview"}])) ($ "#wrapper"))
     (.on ($ "#listview") "tap" (fn [e]
-      (.remove ($ "#listview"))))
-    (doseq [e list]
-      (render-todo e)))
+      (when (and (not window.editing) (not window.inAction))
+        (.remove ($ "#listview")))))
+    (doseq [elem list]
+      (render-todo elem)))
     )
 
 (defn- render-group [g]
