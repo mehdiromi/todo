@@ -22,7 +22,7 @@
                        (take 12 (drop 18 r))
                        ))))
 
-(defn- load-todo-data []
+(def todo-data
   [{:id (uuid)
     :name "group 1"
     :list [{:id (uuid)
@@ -31,7 +31,8 @@
            {:id (uuid)
             :name "todo 2"
             :done false}
-          ]}])
+            ]}
+  ])
 
 (defn- render-todo [elem]
   (do
@@ -98,6 +99,19 @@
       ($ "#home"))
     (.on ($ (+ "#" (g :id))) "tap" (fn [e]
       (render-todos (g :list))))
+    (.on ($ (+ "#" (g :id))) "taphold" (fn [e]
+      (when (and (not window.editing) (not window.inAction))
+        (let [t (.find ($ (+ "#" (g :id))) ".name")]
+          (set! window.editing true)
+          (.empty t)
+          (let [in ($ (crate/html [:input {:type "text" :value (g :name)}]))]
+            (.append t in)
+            (.focus in)
+            (.bind in "blur" (fn []
+              (do
+                (set! window.editing false)
+                (.html t (.val in)))
+            )))))))
     ))
 
 (defn- render [todo-data]
@@ -129,8 +143,7 @@
     ))
 
 (defn- create-app []
-  (let [todo-data (load-todo-data)]
-    (render todo-data)))
+  (render todo-data))
 
 (defn init [& args]
   (.ready ($ js/document) create-app))
