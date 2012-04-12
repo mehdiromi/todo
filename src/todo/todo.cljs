@@ -48,24 +48,42 @@
           (set! window.editing true)
           (.empty t)
           (let [in ($ (crate/html [:input {:type "text" :value (elem :name)}]))]
-            (do
-              (.append t in)
-              (.bind in "blur" (fn []
-                (do
-                  (set! window.editing false)
-                  (.html t (.val in)))
-              ))))))))
+            (.append t in)
+            (.focus in)
+            (.bind in "blur" (fn []
+              (do
+                (set! window.editing false)
+                (.html t (.val in)))
+            )))))))
       ))
 
 (defn- render-todos [list]
   (do
     (.appendTo ($ (crate/html [:ul {:id "listview"}])) ($ "#wrapper"))
-    (.on ($ "#listview") "tap" (fn [e]
+    (.on ($ "#listview") "taphold" (fn [e]
       (when (and (not window.editing) (not window.inAction))
         (.remove ($ "#listview")))))
+    (.on ($ "#listview") "swipeleft" (fn [e]
+      (when (and (not window.editing) (not window.inAction))
+        (let [tid (uuid)
+              in ($ (crate/html [:input {:type "text" :value ""} ""]))
+                newtodo ($ (crate/html
+                  [:li {:class "todo" :id tid}
+                    [:div {:class "inner"}
+                      [:div {:class "name"}]]]))]
+          (set! window.editing true)
+          (.bind in "blur" (fn []
+            (do
+              (set! window.editing false)
+              (.remove newtodo)
+              (if-not (= "" (.val in))
+                (render-todo {:id tid :name (.val in) :done false})))))
+          (.appendTo newtodo ($ "#listview"))
+          (.appendTo in (.find newtodo ".name"))
+          (.focus in)
+          ))))
     (doseq [elem list]
-      (render-todo elem)))
-    )
+      (render-todo elem))))
 
 (defn- render-group [g]
   (do
