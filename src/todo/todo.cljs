@@ -21,6 +21,11 @@
                        (take 3 (drop 15 r)) ["-"]
                        (take 12 (drop 18 r))))))
 
+(defn del-elem [vc pos]
+  (vec (concat 
+         (subvec vc 0 pos) 
+         (subvec vc (inc pos)))))
+
 (def data [
   { :id (uuid)
     :name "group 1"
@@ -53,7 +58,7 @@
     (if i
       (def data
         (if (= "" name)
-          (dissoc data i)
+          (del-elem data i)
           (assoc data i
             (assoc (get data i) :name name))))
       (def data
@@ -70,7 +75,7 @@
         (assoc g :list
           (if ti
             (if (= "" name)
-              (dissoc l ti)
+              (del-elem l ti)
               (assoc l ti
                 (assoc (get l ti) :name name)))
             (assoc l (count l)
@@ -96,7 +101,11 @@
                 (set! window.editing false)
                 (data-set-todo gid tid (.val in))
                 (if (= "" (.val in))
-                  (.remove tod)
+                  (let [c (.find ($ (+ "#" gid)) ".count")]
+                    (.text c (- (js/parseInt (.text c)) 1))
+                    (if (= "0" (.text c))
+                      (.attr ($ (+ "#" gid)) "class" "list empty"))
+                    (.remove tod))
                   (.html t (.val in)))))))))))))
 
 (defn- render-todos [gid list]
@@ -123,6 +132,10 @@
               (if-not (= "" (.val in))
                 (do
                   (data-set-todo gid tid (.val in))
+                  (let [c (.find ($ (+ "#" gid)) ".count")]
+                    (.text c (+ (js/parseInt (.text c)) 1))
+                    (if-not (= "0" (.text c))
+                      (.attr ($ (+ "#" gid)) "class" "list")))
                   (render-todo gid tid))))))
           (.appendTo newtodo ($ "#listview"))
           (.appendTo in (.find newtodo ".name"))
