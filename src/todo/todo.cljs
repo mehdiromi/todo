@@ -21,65 +21,83 @@
                        (take 3 (drop 15 r)) ["-"]
                        (take 12 (drop 18 r))))))
 
-(def todo-data
-  [{:id (uuid)
+(def data [
+  { :id (uuid)
     :name "group 1"
-    :list [{:id (uuid)
-            :name "todo 1"
-            :done false}
-           {:id (uuid)
-            :name "todo 2"
-            :done false}
-            ]}])
+    :list [
+      { :id (uuid)
+        :name "todo 1"
+        :done false}
+      { :id (uuid)
+        :name "todo 2"
+        :done false}]}])
 
+(defn- data-gid2idx [gid]
+  (first (map first (filter #(= gid ((second %) :id)) (map-indexed vector data)))))
 
-(defn- todo-data-gid2idx [gid]
-  (peek (map first (filter #(= gid ((second %) :id)) (map-indexed vector todo-data)))))
+(defn- data-gid2group [gid]
+  (get data (data-gid2idx gid)))
 
-(defn- todo-data-tid2idx [list tid]
-  (map first
-    (filter #(= gid ((second %) :id))
-      (map-indexed vector list))))
+(defn- data-tid2idx [gid tid]
+  (let [g (data-gid2group gid)]
+    (first (map first
+      (filter #(= tid ((second %) :id))
+        (map-indexed vector (g :list)))))))
 
-(defn- set-todo [gid tid name]
-  (js/alert (todo-data-gid2idx gid)))
-  ; (let [gi (todo-data-gid2idx gid)
-  ;       g (get todo-data gi)
-  ;       xx (js/alert gi)]))
-    ;     tid (todo-data-tid2idx list tid)]
-    ; (def todo-data (assoc todo-data gi
-    ;   (assoc g :list
-    ;     (if (= "" name)
-    ;       (dissoc list ti)
-    ;       (assoc list ti
-    ;         (assoc (get list ti) :name name))))))))
+(defn- data-tid2todo [gid tid]
+  (let [l ((data-gid2group gid) :list)]
+    (get l (data-tid2idx gid tid))))
 
-(defn- render-todo [gid elem]
-  (let [tod ($ (crate/html
-    [:li {:class (if (elem :done) "todo done" "todo") :id (elem :id)}
-      [:div {:class "inner"}
-        [:div {:class "name"} (elem :name)]]]))]
+(defn- data-set-group [gid name]
+  (let [i (data-gid2idx gid)]
+    (if i
+      (def data
+        (if (= "" name)
+          (dissoc data i)
+          (assoc data i
+            (assoc (get data i) :name name))))
+      (def data
+        (assoc data (count data)
+          {:id gid :name name :list []})))))
+
+(defn- data-set-todo [gid tid name]
+  (let [gi (data-gid2idx gid)
+        g (get data gi)
+        l (g :list)
+        ti (data-tid2idx gid tid)]
+    (def data
+      (assoc data gi
+        (assoc g :list
+          (if ti
+            (if (= "" name)
+              (dissoc l ti)
+              (assoc l ti
+                (assoc (get l ti) :name name)))
+            (assoc l (count l)
+              {:id tid :name name :done false})))))))
+
+(defn- render-todo [gid tid]
+  (let [elem (data-tid2todo gid tid)
+        tod ($ (crate/html
+          [:li {:class (if (elem :done) "todo done" "todo") :id (elem :id)}
+            [:div {:class "inner"}
+              [:div {:class "name"} (elem :name)]]]))]
     (.appendTo tod ($ "#listview"))
-    (.on ($ (+ "#" (elem :id))) "taphold" (fn [e]
+    (.on ($ (+ "#" tid)) "taphold" (fn [e]
       (when (and (not window.editing) (not window.inAction))
         (let [t (.find tod ".name")]
           (set! window.editing true)
           (.empty t)
-          (let [in ($ (crate/html [:input {:type "text" :value (elem :name)}]))]
+          (let [in ($ (crate/html [:input {:type "text" :value ((data-tid2todo gid tid) :name)}]))]
             (.append t in)
             (.focus in)
             (.bind in "blur" (fn []
               (do
                 (set! window.editing false)
-(js/alert gid)
-(js/alert (elem :id))
-                (set-todo gid (elem :id) (.val in))
-(js/alert ((get ((get todo-data 0) :list) 0) :name))
+                (data-set-todo gid tid (.val in))
                 (if (= "" (.val in))
-                  (do
-                    (.remove tod))
-                  (do
-                    (.html t (.val in))))))))))))))
+                  (.remove tod)
+                  (.html t (.val in)))))))))))))
 
 (defn- render-todos [gid list]
   (do
@@ -103,51 +121,49 @@
               (set! window.editing false)
               (.remove newtodo)
               (if-not (= "" (.val in))
-                (render-todo gid {:id tid :name (.val in) :done false})))))
+                (do
+                  (data-set-todo gid tid (.val in))
+                  (render-todo gid tid))))))
           (.appendTo newtodo ($ "#listview"))
           (.appendTo in (.find newtodo ".name"))
           (.focus in)))))
     (doseq [elem list]
-      (render-todo gid elem))))
+      (render-todo gid (elem :id)))))
 
-(defn- render-group [g]
-  (let [group ($ (crate/html
-    [:li {:class (if (empty? (g :list)) "list empty" "list") :id (g :id)}
-      [:div {:class "inner"}
-        [:div {:class "name"} (g :name)]
-          [:div {:class "count"} (.toString (count (g :list)))]]]))]
+(defn- render-group [gid]
+  (let [g (data-gid2group gid)
+        group ($ (crate/html
+          [:li {:class (if (empty? (g :list)) "list empty" "list") :id (g :id)}
+            [:div {:class "inner"}
+              [:div {:class "name"} (g :name)]
+                [:div {:class "count"} (.toString (count (g :list)))]]]))]
     (.appendTo group ($ "#home"))
-    (.on ($ (+ "#" (g :id))) "tap" (fn [e]
+    (.on ($ (+ "#" gid)) "tap" (fn [e]
       (when (and (not window.editing) (not window.inAction))
-        (render-todos (g :id) (g :list)))))
-    (.on ($ (+ "#" (g :id))) "taphold" (fn [e]
+        (render-todos gid ((data-gid2group gid) :list)))))
+    (.on ($ (+ "#" gid)) "taphold" (fn [e]
       (when (and (not window.editing) (not window.inAction))
-        (let [t (.find ($ (+ "#" (g :id))) ".name")]
+        (let [t (.find ($ (+ "#" gid)) ".name")]
           (set! window.editing true)
           (.empty t)
-          (let [in ($ (crate/html [:input {:type "text" :value (g :name)}]))]
+          (let [in ($ (crate/html [:input {:type "text" :value ((data-gid2group gid) :name)}]))]
             (.append t in)
             (.focus in)
             (.bind in "blur" (fn []
               (do
                 (set! window.editing false)
-                (let [i (todo-data-gid2idx (g :id))]
-(js/alert i)
+                (data-set-group gid (.val in))
+                (let [i (data-gid2idx gid)]
                   (if (= "" (.val in))
-                    (do
-                      (.remove group)
-                      (dissoc todo-data i))
-                    (do
-                      (.html t (.val in))
-                      (assoc todo-data i
-                        (assoc (get todo-data i) :name (.val in))))))))))))))))
+                    (.remove group)
+                    (.html t (.val in))))))))))))))
 
-(defn- render [todo-data]
+(defn- render [data]
   (do
     (.appendTo ($ (crate/html [:ul {:id "home"}]))
       ($ "#wrapper"))
-    (doseq [g todo-data]
-      (render-group g))
+    (doseq [g data]
+      (render-group (g :id)))
     (.on ($ "#home") "swiperight" (fn [e]
       (when (and (not window.editing) (not window.inAction))
         (let [gid (uuid)
@@ -162,13 +178,15 @@
               (set! window.editing false)
               (.remove newg)
               (if-not (= "" (.val in))
-                (render-group {:id gid :name (.val in) :list []})))))
+                (do
+                  (data-set-group gid (.val in))
+                  (render-group gid))))))
           (.appendTo newg ($ "#home"))
           (.appendTo in (.find newg ".name"))
           (.focus in)))))))
 
 (defn- create-app []
-  (render todo-data))
+  (render data))
 
 (defn init [& args]
   (.ready ($ js/document) create-app))
