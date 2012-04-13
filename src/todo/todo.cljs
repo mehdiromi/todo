@@ -55,31 +55,23 @@
 
 (defn- data-set-group [gid name]
   (let [i (data-gid2idx gid)]
-    (if i
-      (def data
+    (def data
+      (if i
         (if (= "" name)
           (del-elem data i)
-          (assoc data i
-            (assoc (get data i) :name name))))
-      (def data
+          (assoc-in data [i :name] name))
         (assoc data (count data)
           {:id gid :name name :list []})))))
 
 (defn- data-set-todo [gid tid name]
   (let [gi (data-gid2idx gid)
-        g (get data gi)
-        l (g :list)
         ti (data-tid2idx gid tid)]
     (def data
-      (assoc data gi
-        (assoc g :list
-          (if ti
-            (if (= "" name)
-              (del-elem l ti)
-              (assoc l ti
-                (assoc (get l ti) :name name)))
-            (assoc l (count l)
-              {:id tid :name name :done false})))))))
+      (if (= "" name)
+        (update-in data [gi :list] #(del-elem % ti))
+        (if ti
+          (update-in data [gi :list] #(assoc-in % [ti :name] name))
+          (update-in data [gi :list] #(assoc % (count %) {:id tid :name name :done false})))))))
 
 (defn- render-todo [gid tid]
   (let [elem (data-tid2todo gid tid)
@@ -102,7 +94,7 @@
                 (data-set-todo gid tid (.val in))
                 (if (= "" (.val in))
                   (let [c (.find ($ (+ "#" gid)) ".count")]
-                    (.text c (- (js/parseInt (.text c)) 1))
+                    (.text c (dec (js/parseInt (.text c))))
                     (if (= "0" (.text c))
                       (.attr ($ (+ "#" gid)) "class" "list empty"))
                     (.remove tod))
@@ -133,7 +125,7 @@
                 (do
                   (data-set-todo gid tid (.val in))
                   (let [c (.find ($ (+ "#" gid)) ".count")]
-                    (.text c (+ (js/parseInt (.text c)) 1))
+                    (.text c (inc (js/parseInt (.text c))))
                     (if-not (= "0" (.text c))
                       (.attr ($ (+ "#" gid)) "class" "list")))
                   (render-todo gid tid))))))
@@ -171,11 +163,11 @@
                     (.remove group)
                     (.html t (.val in))))))))))))))
 
-(defn- render [data]
+(defn- render [d]
   (do
     (.appendTo ($ (crate/html [:ul {:id "home"}]))
       ($ "#wrapper"))
-    (doseq [g data]
+    (doseq [g d]
       (render-group (g :id)))
     (.on ($ "#home") "swiperight" (fn [e]
       (when (and (not window.editing) (not window.inAction))
