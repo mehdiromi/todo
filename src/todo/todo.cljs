@@ -21,7 +21,7 @@
                        (take 3 (drop 15 r)) ["-"]
                        (take 12 (drop 18 r))))))
 
-(defn del-elem [vc pos]
+(defn vec-del-at [vc pos]
   (vec (concat 
          (subvec vc 0 pos) 
          (subvec vc (inc pos)))))
@@ -58,7 +58,7 @@
     (def data
       (if i
         (if (= "" name)
-          (del-elem data i)
+          (vec-del-at data i)
           (assoc-in data [i :name] name))
         (assoc data (count data)
           {:id gid :name name :list []})))))
@@ -68,7 +68,7 @@
         ti (data-tid2idx gid tid)]
     (def data
       (if (= "" name)
-        (update-in data [gi :list] #(del-elem % ti))
+        (update-in data [gi :list] #(vec-del-at % ti))
         (if ti
           (update-in data [gi :list] #(assoc-in % [ti :name] name))
           (update-in data [gi :list] #(assoc % (count %) {:id tid :name name :done false})))))))
